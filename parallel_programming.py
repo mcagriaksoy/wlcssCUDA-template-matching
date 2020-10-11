@@ -7,6 +7,9 @@ Original file is located at
     https://colab.research.google.com/drive/1P1AUa-lIeYdXhmaWTHHpwWwUHgeReW5b
 """
 
+# from google.colab import drive
+# drive.mount('/content/drive')
+
 pip install pycuda
 
 pip install opencv-python
@@ -17,6 +20,7 @@ import numpy as np
 import cv2
 from timeit import default_timer as timer
 from pycuda.compiler import SourceModule
+from matplotlib import pyplot as plt
 
 mod = SourceModule("""
 __global__ void wlcss_cuda_kernel(int32_t *d_mss, int32_t *d_mss_offsets, int32_t *d_ts, int32_t *d_ss, int32_t *d_tlen, int32_t *d_toffsets, int32_t *d_slen, int32_t *d_soffsets, int32_t *d_params){
@@ -115,28 +119,24 @@ matching_scores = compute_wlcss(y,z,x)
 
 print(matching_scores)
 
-template =  cv2.imread("/content/52.jpeg",1)
+TEMPLATE_PATH = '/content/52.jpeg'
+STREAM_PATH = '/content/960.jpeg'
 
-stream  =  cv2.imread("/content/1920.jpeg", 1)
+template =  cv2.imread(TEMPLATE_PATH,1)
+template_gray = cv2.imread(TEMPLATE_PATH,0)
 
-x = np.array([1,1,1])
+stream  =  cv2.imread(STREAM_PATH, 1) 
+stream_gray = cv2.cvtColor(stream, cv2.COLOR_BGR2GRAY)
 
-start = timer()
+loopcount = 0
 
-matching_scores = compute_wlcss(template,stream,x)
-end = timer()
-
-print(end-start)
-print(matching_scores)
-
-# Commented out IPython magic to ensure Python compatibility.
-# %matplotlib inline 
-from matplotlib import pyplot as plt
+for x in range(0,10):
+  x = np.array([1,1,1])
+  start = timer()
+  matching_scores = compute_wlcss(template_gray,stream_gray,x)
+  end = timer()
+  loopcount += (end-start)
 
 
-a = np.asarray(matching_scores)
-
-result = np.where(a > 2)
-print(result)
-#plt.plot(result)
-#plt.show()
+print(loopcount/10)
+#print(matching_scores)
